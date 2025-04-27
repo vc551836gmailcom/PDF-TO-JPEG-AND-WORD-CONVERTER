@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Converter Pro | PDF to Word & JPEG</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #ff6b6b;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+            --success: #28a745;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .hero {
+            text-align: center;
+            padding: 80px 0 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        /* Converter Tools */
+        .converter-tools {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            transition: transform 0.3s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tool-card h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-card h2 i {
+            color: var(--primary);
+        }
+
+        .tool-card p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(74, 107, 255, 0.05);
+        }
+
+        .upload-area.active {
+            border-color: var(--primary);
+            background: rgba(74, 107, 255, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3a5bef;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #e05555;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(74, 107, 255, 0.1);
+        }
+
+        /* File Info */
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f2f5;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info p {
+            margin-bottom: 10px;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Results */
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .download-btn {
+            margin-top: 20px;
+        }
+
+        /* Preview */
+        .preview-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .preview-container.show {
+            display: block;
+        }
+
+        .page-preview {
+            background: white;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .tool-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">
+                    <i class="fas fa-file-pdf"></i> PDF Converter Pro
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Convert PDF Files Easily</h1>
+            <p>Transform your PDF documents to Word or JPEG images in seconds. No registration required!</p>
+        </section>
+
+        <section class="converter-tools">
+            <!-- PDF to Word Converter -->
+            <div class="tool-card" id="wordTool">
+                <h2><i class="fas fa-file-word"></i> PDF to Word</h2>
+                <p>Convert your PDF documents to editable Word files while preserving formatting.</p>
+                
+                <div class="upload-area" id="wordUploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drag & Drop PDF File Here</h3>
+                    <p>or click to browse your files</p>
+                    <input type="file" id="wordFileInput" class="file-input" accept=".pdf">
+                    <button class="btn btn-primary" id="wordSelectBtn">Select PDF File</button>
+                </div>
+                
+                <div class="file-info" id="wordFileInfo"></div>
+                
+                <div class="progress-container" id="wordProgress">
+                    <div class="progress-bar">
+                        <div class="progress" id="wordProgressBar"></div>
+                    </div>
+                    <p>Converting to Word document...</p>
+                </div>
+                
+                <div class="results" id="wordResults">
+                    <h3>Conversion Complete!</h3>
+                    <div class="preview-container" id="wordPreview"></div>
+                    <button class="btn btn-primary download-btn" id="wordDownloadBtn">
+                        <i class="fas fa-download"></i> Download Word File
+                    </button>
+                </div>
+                
+                <button class="btn btn-outline" id="wordResetBtn" style="display: none; margin-top: 15px;">
+                    <i class="fas fa-redo"></i> Convert Another File
+                </button>
+            </div>
+
+            <!-- PDF to JPEG Converter -->
+            <div class="tool-card" id="jpegTool">
+                <h2><i class="fas fa-file-image"></i> PDF to JPEG</h2>
+                <p>Convert each page of your PDF to high-quality JPEG images.</p>
+                
+                <div class="upload-area" id="jpegUploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drag & Drop PDF File Here</h3>
+                    <p>or click to browse your files</p>
+                    <input type="file" id="jpegFileInput" class="file-input" accept=".pdf">
+                    <button class="btn btn-primary" id="jpegSelectBtn">Select PDF File</button>
+                </div>
+                
+                <div class="file-info" id="jpegFileInfo"></div>
+                
+                <div class="progress-container" id="jpegProgress">
+                    <div class="progress-bar">
+                        <div class="progress" id="jpegProgressBar"></div>
+                    </div>
+                    <p>Converting to JPEG images...</p>
+                </div>
+                
+                <div class="results" id="jpegResults">
+                    <h3>Conversion Complete!</h3>
+                    <div class="preview-container" id="jpegPreview"></div>
+                    <button class="btn btn-secondary download-btn" id="jpegDownloadBtn">
+                        <i class="fas fa-download"></i> Download All as ZIP
+                    </button>
+                </div>
+                
+                <button class="btn btn-outline" id="jpegResetBtn" style="display: none; margin-top: 15px;">
+                    <i class="fas fa-redo"></i> Convert Another File
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+
+        // DOM Elements
+        const wordUploadArea = document.getElementById('wordUploadArea');
+        const wordFileInput = document.getElementById('wordFileInput');
+        const wordSelectBtn = document.getElementById('wordSelectBtn');
+        const wordFileInfo = document.getElementById('wordFileInfo');
+        const wordProgress = document.getElementById('wordProgress');
+        const wordProgressBar = document.getElementById('wordProgressBar');
+        const wordResults = document.getElementById('wordResults');
+        const wordDownloadBtn = document.getElementById('wordDownloadBtn');
+        const wordResetBtn = document.getElementById('wordResetBtn');
+        const wordPreview = document.getElementById('wordPreview');
+        
+        const jpegUploadArea = document.getElementById('jpegUploadArea');
+        const jpegFileInput = document.getElementById('jpegFileInput');
+        const jpegSelectBtn = document.getElementById('jpegSelectBtn');
+        const jpegFileInfo = document.getElementById('jpegFileInfo');
+        const jpegProgress = document.getElementById('jpegProgress');
+        const jpegProgressBar = document.getElementById('jpegProgressBar');
+        const jpegResults = document.getElementById('jpegResults');
+        const jpegDownloadBtn = document.getElementById('jpegDownloadBtn');
+        const jpegResetBtn = document.getElementById('jpegResetBtn');
+        const jpegPreview = document.getElementById('jpegPreview');
+
+        // Variables to store conversion results
+        let wordDocBlob = null;
+        let jpegImages = [];
+        let currentPdfFile = null;
+
+        // Event Listeners
+        wordSelectBtn.addEventListener('click', () => wordFileInput.click());
+        jpegSelectBtn.addEventListener('click', () => jpegFileInput.click());
+        
+        wordFileInput.addEventListener('change', handleWordFileSelect);
+        jpegFileInput.addEventListener('change', handleJpegFileSelect);
+        
+        wordDownloadBtn.addEventListener('click', downloadWordFile);
+        jpegDownloadBtn.addEventListener('click', downloadJpegFiles);
+        
+        wordResetBtn.addEventListener('click', resetWordConverter);
+        jpegResetBtn.addEventListener('click', resetJpegConverter);
+        
+        // Drag and drop for Word converter
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            wordUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            wordUploadArea.addEventListener(eventName, highlightWord, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            wordUploadArea.addEventListener(eventName, unhighlightWord, false);
+        });
+        
+        wordUploadArea.addEventListener('drop', handleWordDrop, false);
+        
+        // Drag and drop for JPEG converter
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            jpegUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            jpegUploadArea.addEventListener(eventName, highlightJpeg, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            jpegUploadArea.addEventListener(eventName, unhighlightJpeg, false);
+        });
+        
+        jpegUploadArea.addEventListener('drop', handleJpegDrop, false);
+
+        // Functions
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function highlightWord() {
+            wordUploadArea.classList.add('active');
+        }
+        
+        function unhighlightWord() {
+            wordUploadArea.classList.remove('active');
+        }
+        
+        function highlightJpeg() {
+            jpegUploadArea.classList.add('active');
+        }
+        
+        function unhighlightJpeg() {
+            jpegUploadArea.classList.remove('active');
+        }
+        
+        function handleWordDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleWordFileSelect({ target: { files: files } });
+            }
+        }
+        
+        function handleJpegDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleJpegFileSelect({ target: { files: files } });
+            }
+        }
+        
+        function handleWordFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                currentPdfFile = file;
+                wordFileInfo.innerHTML = `<p>Selected file: <strong>${file.name}</strong></p>
+                                         <p>Size: ${formatFileSize(file.size)}</p>`;
+                wordFileInfo.classList.add('show');
+                convertPdfToWord(file);
+            } else {
+                alert('Please select a valid PDF file.');
+            }
+        }
+        
+        function handleJpegFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                currentPdfFile = file;
+                jpegFileInfo.innerHTML = `<p>Selected file: <strong>${file.name}</strong></p>
+                                          <p>Size: ${formatFileSize(file.size)}</p>`;
+                jpegFileInfo.classList.add('show');
+                convert
